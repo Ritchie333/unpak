@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <dirent.h>
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -121,13 +123,26 @@ int on_enum_pak( const char* pak_filename, const char* filename, const int size 
   if( buf )  {
     char pak_dir[ 256 ];
     dirname( pak_filename, pak_dir, 256 );
+    if ( !*pak_dir ) {
+      strcpy( pak_dir, "." );
+    }
+
+    char sub_dir[ 256 ];
+    strcpy( sub_dir, pak_dir );
+    strcat( pak_dir, "/" );
+    
     char file_dir[ 256 ];
     dirname( filename, file_dir, 256 );
-    strcat( pak_dir, "/" );
     strcat( pak_dir, file_dir );
-    printf( "mkdir %s\n", pak_dir );
-    mkdir( pak_dir, S_IRWXU );
-    dirname( pak_filename, pak_dir, 256 );
+    DIR* dir = opendir( pak_dir );
+    if( dir ) {
+      closedir( dir );
+    } else if (ENOENT == errno ) {
+      printf( "mkdir %s\n", pak_dir );
+      mkdir( pak_dir, S_IRWXU );
+    }
+
+    strcpy( sub_dir, pak_dir );
     strcat( pak_dir, "/" );
     strcat( pak_dir, filename );
     printf( "%s\n", pak_dir );
