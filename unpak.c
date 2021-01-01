@@ -130,6 +130,7 @@ int on_enum_pak( const char* pak_filename, const char* filename, const int size 
     dirname( pak_filename, pak_dir, 256 );
     strcat( pak_dir, "/" );
     strcat( pak_dir, filename );
+    printf( "%s\n", pak_dir );
     FILE* fp = fopen( pak_dir, "wb" );
     if( fp ) {
       fwrite( buf, size, 1, fp );
