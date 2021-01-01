@@ -41,6 +41,7 @@ void pak_enum(const char *pak_filename, int (* callback)( const char*, const cha
         } 
       }
     }
+    fclose( fp );
   }
 }
 
@@ -93,6 +94,7 @@ void *pak_load_file(const char *pak_filename, const char *filename, int *out_fil
 
       if (out_filesize)
         *out_filesize = pak_file.size;
+      fclose( fp );
       return buffer;
     }
   }
