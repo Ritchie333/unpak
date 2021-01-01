@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 typedef struct pak_header_s
 {
@@ -123,7 +125,7 @@ int on_enum_pak( const char* pak_filename, const char* filename, const int size 
     dirname( filename, file_dir, 256 );
     strcat( pak_dir, "/" );
     strcat( pak_dir, file_dir );
-printf( "mkdir %s\n", pak_dir );
+    printf( "mkdir %s\n", pak_dir );
     mkdir( pak_dir, S_IRWXU );
     dirname( pak_filename, pak_dir, 256 );
     strcat( pak_dir, "/" );
