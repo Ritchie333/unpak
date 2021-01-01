@@ -129,27 +129,30 @@ int on_enum_pak( const char* pak_filename, const char* filename, const int size 
 
     char sub_dir[ 256 ];
     strcpy( sub_dir, pak_dir );
-    strcat( pak_dir, "/" );
+    strcat( sub_dir, "/" );
     
     char file_dir[ 256 ];
     dirname( filename, file_dir, 256 );
-    strcat( pak_dir, file_dir );
-    DIR* dir = opendir( pak_dir );
+    strcat( sub_dir, file_dir );
+    DIR* dir = opendir( sub_dir );
     if( dir ) {
       closedir( dir );
     } else if (ENOENT == errno ) {
-      printf( "mkdir %s\n", pak_dir );
-      mkdir( pak_dir, S_IRWXU );
+      printf( "mkdir %s\n", sub_dir );
+      mkdir( sub_dir, S_IRWXU );
     }
 
-    strcpy( sub_dir, pak_dir );
-    strcat( pak_dir, "/" );
-    strcat( pak_dir, filename );
-    printf( "%s\n", pak_dir );
-    FILE* fp = fopen( pak_dir, "wb" );
+    char path[ 256 ];
+    strcpy( path, pak_dir );
+    strcat( path, "/" );
+    strcat( path, filename );
+    printf( "%s\n", path );
+    FILE* fp = fopen( path, "wb" );
     if( fp ) {
       fwrite( buf, size, 1, fp );
       fclose( fp );
+    } else {
+      fprintf( stderr, "Unable to write to %s : %d\n", path, errno );
     }
     free( buf );
   }
