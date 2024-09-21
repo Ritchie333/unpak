@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <errno.h>
+#include <sys/stat.h>
 
 typedef struct pak_header_s
 {
@@ -113,25 +117,43 @@ void dirname( const char* path, char* result, size_t size )
   result[ i ] = 0;
 }
 
+void get_packdir( const char* filename, char* dir, size_t size )
+{
+  dirname( filename, dir, size );
+  if( !*dir ) {
+    getcwd( dir, size );
+  }
+}
+
 int on_enum_pak( const char* pak_filename, const char* filename, const int size )
 {
   void* buf = pak_load_file( pak_filename, filename, NULL );
   if( buf )  {
     char pak_dir[ 256 ];
-    dirname( pak_filename, pak_dir, 256 );
+    get_packdir( pak_filename, pak_dir, sizeof( pak_dir ) );
     char file_dir[ 256 ];
     dirname( filename, file_dir, 256 );
     strcat( pak_dir, "/" );
     strcat( pak_dir, file_dir );
-printf( "mkdir %s\n", pak_dir );
-    mkdir( pak_dir, S_IRWXU );
-    dirname( pak_filename, pak_dir, 256 );
+    DIR* dir = opendir( pak_dir );
+    if( dir ) {
+      closedir( dir );
+    } else if( ENOENT == errno ) {
+      if( -1 == mkdir( pak_dir, S_IRWXU ) ) {
+        fprintf( stderr, "Unable to create directory %s : %s\n", pak_dir, strerror( errno ) );
+     }
+    } else {
+      fprintf( stderr, "Unable to access directory %s : %s\n", pak_dir, strerror( errno ) );
+    }
+    get_packdir( pak_filename, pak_dir, sizeof( pak_dir ) );
     strcat( pak_dir, "/" );
     strcat( pak_dir, filename );
     FILE* fp = fopen( pak_dir, "wb" );
     if( fp ) {
       fwrite( buf, size, 1, fp );
       fclose( fp );
+    } else {
+      fprintf( stderr, "Unable to write to %s : %s\n", pak_dir, strerror( errno ) );
     }
     free( buf );
   }
